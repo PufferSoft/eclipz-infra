@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admingui-backend
+  namespace: admingui
+  labels:
+    app: admingui-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: admingui-backend
+  template:
+    metadata:
+      labels:
+        app: admingui-backend
+    spec:
+      imagePullSecrets:
+        - name: ecr-cfg
+      containers:
+        - name: admingui-backend
+          image: 516256549202.dkr.ecr.us-west-2.amazonaws.com/admingui-backend:5
+          ports:
+            - containerPort: 5001
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 500m
+              cpu: "0.5"
+            limits:
+              memory: 128Mi
+              cpu: 500m
+          env:
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: database
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_password
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_user
+            - name: PGHOST
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_host
+            - name: PGPORT
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_port
+            - name: MIGRATE_DB
+              value: "true"

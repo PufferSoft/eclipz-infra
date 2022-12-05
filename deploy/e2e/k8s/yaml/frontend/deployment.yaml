@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admingui-frontend
+  namespace: admingui
+  labels:
+    app: admingui-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: admingui-frontend
+  template:
+    metadata:
+      labels:
+        app: admingui-frontend
+    spec:
+      imagePullSecrets:
+        - name: ecr-cfg
+      containers:
+      - name: admingui-frontend
+        image: 516256549202.dkr.ecr.us-west-2.amazonaws.com/admingui-frontend:latest
+        ports:
+          - containerPort: 3000
+        imagePullPolicy: Always
+        resources:
+          requests:
+            memory: 500m
+            cpu: "0.5"
+          limits:
+            memory: 128Mi
+            cpu: 500m

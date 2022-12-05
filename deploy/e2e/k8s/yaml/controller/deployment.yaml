@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admingui-controller
+  namespace: admingui
+  labels:
+    app: admingui-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admingui-controller
+  template:
+    metadata:
+      labels:
+        app: admingui-controller
+    spec:
+      imagePullSecrets:
+        - name: ecr-cfg
+      containers:
+        - name: admingui-controller
+          image: 516256549202.dkr.ecr.us-west-2.amazonaws.com/admingui-controller:5
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: 500m
+              cpu: "0.5"
+            limits:
+              memory: 128Mi
+              cpu: 500m
+          env:
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: database
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_password
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_user
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: admingui-secrets
+                  key: db_port
+            - name: DB_DISABLE_SSL
+              value: "true"
+            - name: CERTFILE
+              value: "certs/cert.pem"
+            - name: KEYFILE
+              value: "certs/key.pem"

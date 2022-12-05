@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: admingui-frontend
+  namespace: admingui
+  labels:
+    app: admingui-frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: admingui-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
