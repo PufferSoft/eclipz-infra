@@ -122,13 +122,34 @@ resource "aws_security_group" "allow_ssl" {
 }
 
 
+data "aws_ami" "amznlinux" {
+    most_recent = true
+
+    filter {
+        name   = "name"
+        values = ["amzn2-ami-kernel-*-hvm-*-x86_64-gp2"]
+    }
+
+    filter {
+        name   = "virtualization-type"
+        values = ["hvm"]
+    }
+
+    filter {
+        name   = "architecture"
+        values = ["x86_64"]
+    }
+
+    owners = ["amazon"] # Canonical official
+}
+
 // Pem Key needs to be generated before otherwise terraform will throw an error
  module "ec2_instance" {
   source  = "terraform-aws-modules/ec2-instance/aws"
 
   name = "bastion_host"
 
-  ami                    = "ami-0b0dcb5067f052a63"
+  ami                    = data.aws_ami.amznlinux.id
   instance_type          = "t2.micro"
   key_name               = var.key_name  // --> Please create your key and type the name in variable.tf here
   monitoring             = true
@@ -136,7 +157,8 @@ resource "aws_security_group" "allow_ssl" {
   subnet_id              = module.aws_vpc.public_subnets[0]
 
 }
-
+   
+   
 #---------------------------------------------------------------
 # VPC
 #---------------------------------------------------------------
