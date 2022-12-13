@@ -18,10 +18,59 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
 # ALB Ingress
 #################################
 
-  resource "kubernetes_ingress_v1" "addons_ingress2" {
+ 
+resource "kubernetes_ingress_v1" "addons_ingress2" {
+  metadata {
+    name      = "apps-ingress2"
+    namespace = "argocd"
+
+    annotations = {
+      "kubernetes.io/ingress.class" = "alb"
+      # SSL certificate + redirect
+    //  "alb.ingress.kubernetes.io/certificate-arn"      = var.ssl_certificate_arn
+    //  "alb.ingress.kubernetes.io/listen-ports"         = "[{\"HTTPS\":443}]"
+    //  "alb.ingress.kubernetes.io/actions.ssl-redirect" = "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}"
+
+      # internal routing
+      "alb.ingress.kubernetes.io/backend-protocol"     = "HTTP"
+      "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type"          = "ip"
+      "alb.ingress.kubernetes.io/group.name"           = "myingresses"
+      "alb.ingress.kubernetes.io/group.order"           = "2"
+    }
+
+  }
+
+
+    spec {
+      rule {
+        host = "vault.${var.domain_name}"
+        http {
+          path {
+            backend {
+              service {
+                name = "vault-ui"
+                port {
+                  number = 8200
+                }
+              }
+            }
+            path = "/"
+            path_type = "Prefix"
+          }
+        }
+       }
+
+      tls {
+        secret_name = "tls-secret"
+      }
+    }
+  }
+
+  resource "kubernetes_ingress_v1" "addons_ingress" {
     metadata {
-      name      = "apps-ingress2"
-      namespace = "argocd"
+      name      = "apps-ingress"
+      namespace = "prometheus"
 
       annotations = {
         "kubernetes.io/ingress.class" = "alb"
@@ -35,7 +84,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
         "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
         "alb.ingress.kubernetes.io/target-type"          = "ip"
         "alb.ingress.kubernetes.io/group.name"           = "myingresses"
-        "alb.ingress.kubernetes.io/group.order"           = "2"
+        "alb.ingress.kubernetes.io/group.order"           = "1"
       }
 
     }
@@ -43,14 +92,14 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
 
       spec {
         rule {
-          host = "grafana.awssolutionsprovider.com"
+          host = "prometheus.${var.domain_name}"
           http {
             path {
               backend {
                 service {
-                  name = "vault-ui"
+                  name = "prometheus-server"
                   port {
-                    number = 8200
+                    number = 80
                   }
                 }
               }
@@ -66,10 +115,11 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
       }
     }
 
-    resource "kubernetes_ingress_v1" "addons_ingress" {
+
+    resource "kubernetes_ingress_v1" "addons_ingress3" {
       metadata {
-        name      = "apps-ingress"
-        namespace = "prometheus"
+        name      = "apps-ingress3"
+        namespace = "grafana"
 
         annotations = {
           "kubernetes.io/ingress.class" = "alb"
@@ -83,7 +133,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
           "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
           "alb.ingress.kubernetes.io/target-type"          = "ip"
           "alb.ingress.kubernetes.io/group.name"           = "myingresses"
-          "alb.ingress.kubernetes.io/group.order"           = "1"
+          "alb.ingress.kubernetes.io/group.order"           = "3"
         }
 
       }
@@ -91,12 +141,12 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
 
         spec {
           rule {
-            host = "prom.awssolutionsprovider.com"
+            host = "grafana.${var.domain_name}"
             http {
               path {
                 backend {
                   service {
-                    name = "prometheus-server"
+                    name = "grafana"
                     port {
                       number = 80
                     }
@@ -115,10 +165,10 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
       }
 
 
-      resource "kubernetes_ingress_v1" "addons_ingress3" {
+      resource "kubernetes_ingress_v1" "addons_ingress4" {
         metadata {
-          name      = "apps-ingress3"
-          namespace = "grafana"
+          name      = "apps-ingress4"
+          namespace = "argocd"
 
           annotations = {
             "kubernetes.io/ingress.class" = "alb"
@@ -132,7 +182,7 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
             "alb.ingress.kubernetes.io/scheme"               = "internet-facing"
             "alb.ingress.kubernetes.io/target-type"          = "ip"
             "alb.ingress.kubernetes.io/group.name"           = "myingresses"
-            "alb.ingress.kubernetes.io/group.order"           = "3"
+            "alb.ingress.kubernetes.io/group.order"           = "4"
           }
 
         }
@@ -140,12 +190,12 @@ resource "aws_iam_policy" "aws_load_balancer_controller" {
 
           spec {
             rule {
-              host = "graf.awssolutionsprovider.com"
+              host = "argocd.${var.domain_name}"
               http {
                 path {
                   backend {
                     service {
-                      name = "grafana"
+                      name = "argo-cd-argocd-server"
                       port {
                         number = 80
                       }
