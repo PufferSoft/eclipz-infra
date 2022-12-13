@@ -158,6 +158,90 @@ data "aws_ami" "amznlinux" {
 
 }
    
+
+data "aws_route53_zone" "main" {
+  name = var.domain_name
+}
+
+data "aws_lb_hosted_zone_id" "main" {
+}
+
+data "kubernetes_ingress" "vault" {
+  metadata {
+    name = "apps-ingress2"
+    namespace="argocd"
+  }
+}
+
+resource "aws_route53_record" "vaultA" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "vault.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = "${data.kubernetes_ingress.vault.status.0.load_balancer.0.ingress.0.hostname}"
+    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
+    evaluate_target_health = true
+  }
+}
+
+
+data "kubernetes_ingress" "prometheus" {
+  metadata {
+    name = "apps-ingress"
+    namespace="prometheus"
+  }
+}
+
+resource "aws_route53_record" "promA" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "prometheus.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = "${data.kubernetes_ingress.prometheus.status.0.load_balancer.0.ingress.0.hostname}"
+    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
+    evaluate_target_health = true
+  }
+}
+
+data "kubernetes_ingress" "argo" {
+  metadata {
+    name = "apps-ingress4"
+    namespace="argocd"
+  }
+}
+
+resource "aws_route53_record" "argoA" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "argocd.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = "${data.kubernetes_ingress.argo.status.0.load_balancer.0.ingress.0.hostname}"
+    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
+    evaluate_target_health = true
+  }
+}
+
+data "kubernetes_ingress" "grafana" {
+  metadata {
+    name = "apps-ingress3"
+    namespace="grafana"
+  }
+}
+
+resource "aws_route53_record" "grafA" {
+  zone_id = data.aws_route53_zone.main.zone_id
+  name    = "grafana.${var.domain_name}"
+  type    = "A"
+
+  alias {
+    name                   = "${data.kubernetes_ingress.grafana.status.0.load_balancer.0.ingress.0.hostname}"
+    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
+    evaluate_target_health = true
+  }
+}   
    
 #---------------------------------------------------------------
 # VPC
@@ -264,23 +348,24 @@ module "kubernetes-addons" {
      add_on_application = true # Indicates the root add-on application.
    },
    vault = {
-     path               = "."
+     path                 = "."
        repo_url           = "https://github.com/nouman2ahmed/vault-helm"
-      // repo_url           = "https://github.com/hashicorp/vault-helm"
+       add_on_application = false # Indicates the root add-on application.
+   },
+   loki = {
+       path               = "."
+       repo_url           = "https://github.com/nouman2ahmed/loki-latest"
        add_on_application = false # Indicates the root add-on application.
    }
   }
 
-  //grafana = {
-  //  enable = true
-  //}
+  
   #---------------------------------------------------------------
   # ADD-ONS
   #---------------------------------------------------------------
 
 
 
-//  enable_vault = true
   enable_aws_for_fluentbit             = false
   enable_grafana                       = true
   enable_promtail                      = true
