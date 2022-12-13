@@ -25,6 +25,10 @@ variable "key_name"{
  default="Elviskey"
 }
 
+variable "domain_name"{
+ type= string
+ default="eclipzit.net"
+}
 variable "tenant" {
   type        = string
   description = "Account Name or unique account unique id e.g., apps or management or aws007"
