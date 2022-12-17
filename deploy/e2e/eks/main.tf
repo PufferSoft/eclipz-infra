@@ -9,6 +9,7 @@ module "eks-cluster-with-import-vpc" {
   zone        = var.zone
   region      = var.region
 
+
 }
 
 # create the ecr registrys

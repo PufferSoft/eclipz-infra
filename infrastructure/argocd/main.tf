@@ -21,6 +21,8 @@ terraform {
   #}
 }
 
+
+
 data "aws_region" "current" {}
 
 data "aws_availability_zones" "available" {}
@@ -85,6 +87,12 @@ locals {
   #---------------------------------------------------------------
 
 }
+
+// ingress rules to be implemented
+
+
+
+
 
 // creation of elastic IP for Bastion Host
 
@@ -157,92 +165,10 @@ data "aws_ami" "amznlinux" {
   subnet_id              = module.aws_vpc.public_subnets[0]
 
 }
-   
-
-data "aws_route53_zone" "main" {
-  name = var.domain_name
-}
-
-data "aws_lb_hosted_zone_id" "main" {
-}
-
-data "kubernetes_ingress" "vault" {
-  metadata {
-    name = "apps-ingress2"
-    namespace="argocd"
-  }
-}
-
-resource "aws_route53_record" "vaultA" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = "vault.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = "${data.kubernetes_ingress.vault.status.0.load_balancer.0.ingress.0.hostname}"
-    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
-    evaluate_target_health = true
-  }
-}
 
 
-data "kubernetes_ingress" "prometheus" {
-  metadata {
-    name = "apps-ingress"
-    namespace="prometheus"
-  }
-}
 
-resource "aws_route53_record" "promA" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = "prometheus.${var.domain_name}"
-  type    = "A"
 
-  alias {
-    name                   = "${data.kubernetes_ingress.prometheus.status.0.load_balancer.0.ingress.0.hostname}"
-    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
-    evaluate_target_health = true
-  }
-}
-
-data "kubernetes_ingress" "argo" {
-  metadata {
-    name = "apps-ingress4"
-    namespace="argocd"
-  }
-}
-
-resource "aws_route53_record" "argoA" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = "argocd.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = "${data.kubernetes_ingress.argo.status.0.load_balancer.0.ingress.0.hostname}"
-    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
-    evaluate_target_health = true
-  }
-}
-
-data "kubernetes_ingress" "grafana" {
-  metadata {
-    name = "apps-ingress3"
-    namespace="grafana"
-  }
-}
-
-resource "aws_route53_record" "grafA" {
-  zone_id = data.aws_route53_zone.main.zone_id
-  name    = "grafana.${var.domain_name}"
-  type    = "A"
-
-  alias {
-    name                   = "${data.kubernetes_ingress.grafana.status.0.load_balancer.0.ingress.0.hostname}"
-    zone_id                = "${data.aws_lb_hosted_zone_id.main.id}"
-    evaluate_target_health = true
-  }
-}   
-   
 #---------------------------------------------------------------
 # VPC
 #---------------------------------------------------------------
@@ -274,6 +200,9 @@ module "aws_vpc" {
   }
 
 }
+
+
+
 
 #---------------------------------------------------------------
 # Example to consume aws-eks-accelerator-for-terraform module
@@ -359,7 +288,7 @@ module "kubernetes-addons" {
    }
   }
 
-  
+
   #---------------------------------------------------------------
   # ADD-ONS
   #---------------------------------------------------------------

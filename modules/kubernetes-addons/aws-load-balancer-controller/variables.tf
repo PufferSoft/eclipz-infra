@@ -29,10 +29,5 @@ variable "addon_context" {
 
 variable "ssl_certificate_arn"{
 type= string
-default="arn:aws:acm:us-west-2:516256549202:certificate/71ba69b0-d2fb-44d4-a03e-5b5f98d3da3b"  
-}
-
-variable "domain_name"{
-type= string
-default="eclipzit.net"
+default="arn:aws:acm:us-west-2:516256549202:certificate/71ba69b0-d2fb-44d4-a03e-5b5f98d3da3b"
 }
